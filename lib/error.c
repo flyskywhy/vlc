@@ -35,17 +35,29 @@ static void libvlc_setup_threads (bool init)
     static vlc_mutex_t lock = VLC_STATIC_MUTEX;
     static uintptr_t refs = 0;
 
+    void andro_init_threads(bool);
+
     vlc_mutex_lock (&lock);
     if (init)
     {
-        if (refs++ == 0)
+        if (refs++ == 0) {
+#ifdef __ANDROID__
+            /* XXX: move somewhere else? */
+            andro_init_threads(init);
+#endif
             vlc_threadvar_create (&context, free);
+        }
     }
     else
     {
         assert (refs > 0);
-        if (--refs == 0)
+        if (--refs == 0) {
             vlc_threadvar_delete (&context);
+#ifdef __ANDROID__
+            /* XXX: move somewhere else? */
+            andro_init_threads(init);
+#endif
+        }
     }
     vlc_mutex_unlock (&lock);
 }

@@ -43,6 +43,15 @@
 
 #   define pthread_sigmask  sigprocmask
 
+#elif defined( __ANDROID__ )      /* pthreads without pthread_cancel() */
+
+#   define LIBVLC_USE_PTHREAD 1
+
+#   include <unistd.h> /* _POSIX_SPIN_LOCKS */
+#   include <pthread.h>
+#   include <poll.h>
+#   include <semaphore.h>
+
 #else                                         /* pthreads (like Linux & BSD) */
 #   define LIBVLC_USE_PTHREAD 1
 #   define LIBVLC_USE_PTHREAD_CANCEL 1
@@ -118,7 +127,11 @@
  *****************************************************************************/
 
 #if defined (LIBVLC_USE_PTHREAD)
+# ifdef LIBVLC_USE_PTHREAD_CANCEL
 typedef pthread_t       vlc_thread_t;
+# else
+typedef struct vlc_thread *vlc_thread_t;
+# endif
 typedef pthread_mutex_t vlc_mutex_t;
 #define VLC_STATIC_MUTEX PTHREAD_MUTEX_INITIALIZER
 typedef pthread_cond_t  vlc_cond_t;
