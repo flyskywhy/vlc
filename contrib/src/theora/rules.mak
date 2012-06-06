@@ -47,9 +47,9 @@ endif
 DEPS_theora = ogg $(DEPS_ogg)
 
 .theora: libtheora
-ifdef HAVE_WIN32
+#ifdef HAVE_WIN32
 	$(RECONF)
-endif
+#endif
 	cd $< && $(HOSTVARS) ./configure $(THEORACONF)
 	cd $< && $(MAKE) install
 	touch $@
