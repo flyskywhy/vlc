@@ -30,6 +30,15 @@ POSTPROC_CFLAGS +=-mfloat-abi=softfp -mfpu=neon
 endif
 endif
 
+# MIPS stuff
+ifeq ($(ARCH),mips)
+POSTPROCCONF += --disable-runtime-cpudetect --arch=mips
+POSTPROCCONF += --cpu=mips32r2
+ifndef HAVE_FPU
+FFMPEG_CFLAGS += -msoft-float
+endif
+endif
+
 # Darwin
 ifdef HAVE_MACOSX
 POSTPROCCONF += --arch=$(ARCH) --target-os=darwin

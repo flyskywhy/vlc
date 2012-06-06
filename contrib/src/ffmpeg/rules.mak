@@ -56,6 +56,15 @@ FFMPEG_CFLAGS +=-mfloat-abi=softfp -mfpu=neon
 endif
 endif
 
+# MIPS stuff
+ifeq ($(ARCH),mips)
+FFMPEGCONF += --disable-runtime-cpudetect --arch=mips
+FFMPEGCONF += --cpu=mips32r2
+ifndef HAVE_FPU
+FFMPEG_CFLAGS += -msoft-float
+endif
+endif
+
 # Darwin
 ifdef HAVE_DARWIN_OS
 FFMPEGCONF += --arch=$(ARCH) --target-os=darwin

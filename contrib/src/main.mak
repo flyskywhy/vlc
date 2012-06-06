@@ -46,6 +46,11 @@ HAVE_FPU = 1
 endif
 endif
 endif
+ifeq ($(MSOFT_FLOAT),1)
+HAVE_FPU =
+else
+HAVE_FPU = 1
+endif
 ifeq ($(ARCH)-$(HAVE_WIN32),x86_64-1)
 HAVE_WIN64 := 1
 endif
@@ -100,16 +105,30 @@ endif
 endif
 
 ifdef HAVE_ANDROID
-CC :=  $(HOST)-gcc --sysroot=$(ANDROID_NDK)/platforms/android-9/arch-arm
-CXX := $(HOST)-g++ --sysroot=$(ANDROID_NDK)/platforms/android-9/arch-arm
+CC :=  $(HOST)-gcc --sysroot=$(ANDROID_NDK)/platforms/android-9/arch-$(ARCH)
+CXX := $(HOST)-g++ --sysroot=$(ANDROID_NDK)/platforms/android-9/arch-$(ARCH)
 
 # Kludge for C++ prebuilt compiler
 EXTRA_CFLAGS += -D__STDC_VERSION__=199901L
 EXTRA_CFLAGS += -I$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/include
+
+ifeq ($(ARCH),mips)
+CC := $(CC) -EL
+CXX := $(CXX) -EL
+LD := $(LD) -EL
+EXTRA_CFLAGS += -I$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/libs/mips/include
+ifndef HAVE_FPU
+EXTRA_CFLAGS += -msoft-float
+endif
+
+else
+
 ifdef HAVE_NEON
     EXTRA_CFLAGS += -I$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/libs/armeabi-v7a/include -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a8
 else
     EXTRA_CFLAGS += -I$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/libs/armeabi/include -mfloat-abi=softfp -mcpu=arm1136jf-s -mfpu=vfp
+endif
+
 endif
 endif
 
@@ -409,8 +428,19 @@ ifdef HAVE_DARWIN_OS
 	echo "set(CMAKE_CXX_FLAGS $(CFLAGS))" >> $@
 	echo "set(CMAKE_LD_FLAGS $(LDFLAGS))" >> $@
 endif
+# TODO: why mips's g++ need -fno-exceptions in cmake?
+ifeq ($(ARCH),mips)
+ifdef HAVE_ANDROID
+	echo "set(CMAKE_C_COMPILER $(HOST)-gcc \"--sysroot=$(ANDROID_NDK)/platforms/android-9/arch-$(ARCH) -EL\")" >> $@
+	echo "set(CMAKE_CXX_COMPILER $(HOST)-g++ \"--sysroot=$(ANDROID_NDK)/platforms/android-9/arch-$(ARCH) -EL -fno-exceptions\")" >> $@
+else
+	echo "set(CMAKE_C_COMPILER $(HOST)-gcc \"-EL\")" >> $@
+	echo "set(CMAKE_CXX_COMPILER $(HOST)-g++ \"-EL -fno-exceptions\")" >> $@
+endif
+else
 	echo "set(CMAKE_C_COMPILER $(CC))" >> $@
 	echo "set(CMAKE_CXX_COMPILER $(CXX))" >> $@
+endif
 	echo "set(CMAKE_FIND_ROOT_PATH $(PREFIX))" >> $@
 	echo "set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)" >> $@
 	echo "set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)" >> $@

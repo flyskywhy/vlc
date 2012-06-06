@@ -21,5 +21,10 @@ libmodplug: libmodplug-$(MODPLUG_VERSION).tar.gz .sum-modplug
 
 .modplug: libmodplug
 	cd $< && $(HOSTVARS) ./configure $(HOSTCONF)
+# TODO: why ./configure can't check HAVE_SETENV & HAVE_SINF to yes in MIPS?
+ifeq ($(ARCH),mips)
+	cd libmodplug && sed -i.orig "s/\/\* #undef HAVE_SETENV \*\//#define HAVE_SETENV 1/" src/config.h
+	cd libmodplug && sed -i.orig "s/\/\* #undef HAVE_SINF \*\//#define HAVE_SINF 1/" src/config.h
+endif
 	cd $< && $(MAKE) install
 	touch $@

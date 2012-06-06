@@ -177,7 +177,9 @@ check_android_sdk()
 {
 	[ -z "${ANDROID_NDK}" ] && echo "You must set ANDROID_NDK environment variable" && exit 1
 	add_make "ANDROID_NDK := ${ANDROID_NDK}"
-	test -z "${NO_NEON}" && add_make_enabled "HAVE_NEON"
+	if test ${MY_TARGET_ARCH} = "arm"; then
+		test -z "${NO_NEON}" && add_make_enabled "HAVE_NEON"
+	fi
 }
 
 test -z "$PREFIX" || add_make "PREFIX := $PREFIX"
@@ -205,10 +207,10 @@ case "${OS}" in
 	*bsd*)
 		add_make_enabled "HAVE_BSD"
 		;;
-	linux-androideabi)
+	linux-android*)
 		check_android_sdk
 		add_make_enabled "HAVE_LINUX" "HAVE_ANDROID"
-		add_make "PATH = ${ANDROID_NDK}/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/bin/:${PATH}"
+		add_make "PATH = ${ANDROID_NDK}/toolchains/${NDK_TOOLCHAINS}/prebuilt/linux-x86/bin/:${PATH}"
 		;;
 	*linux*)
 		add_make_enabled "HAVE_LINUX"

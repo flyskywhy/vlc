@@ -9,8 +9,22 @@ ANDROID_API=android-9
 
 VLC_SOURCEDIR="`dirname $0`/../../.."
 
+if test ${MY_TARGET_ARCH} = "mips"; then
+CFLAGS="-g -O2 -mlong-calls -fstrict-aliasing -funsafe-math-optimizations"
+if test ${MSOFT_FLOAT} = "1"; then
+CFLAGS="$CFLAGS -msoft-float"
+fi
+else
 CFLAGS="-g -O2 -mlong-calls -fstrict-aliasing -mfloat-abi=softfp -funsafe-math-optimizations"
+fi
 LDFLAGS="-Wl,-Bdynamic,-dynamic-linker=/system/bin/linker -Wl,--no-undefined"
+
+if test ${MY_TARGET_ARCH} = "mips"; then
+    CXX_TARGET="mips"
+    CFLAGS="$CFLAGS -EL -fPIC"
+    LDFLAGS="$LDFLAGS -EL -fPIC"
+    EXTRA_PARAMS="--with-pic"
+else
 
 if [ -z "$NO_NEON" ]; then
     CXX_TARGET="armeabi-v7a"
@@ -27,13 +41,14 @@ else
     EXTRA_PARAMS=" --disable-neon"
 fi
 
+fi
 
 CPPFLAGS="-I${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/include -I${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/libs/${CXX_TARGET}/include"
 LDFLAGS="$LDFLAGS -L${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/libs/${CXX_TARGET}"
 
-SYSROOT=$ANDROID_NDK/platforms/$ANDROID_API/arch-arm
-ANDROID_BIN=$ANDROID_NDK/toolchains/arm-linux-androideabi-4.4.3/prebuilt/*-x86/bin/
-CROSS_COMPILE=${ANDROID_BIN}/arm-linux-androideabi-
+SYSROOT=$ANDROID_NDK/platforms/$ANDROID_API/arch-${MY_TARGET_ARCH}
+ANDROID_BIN=$ANDROID_NDK/toolchains/${NDK_TOOLCHAINS}/prebuilt/*-x86/bin/
+CROSS_COMPILE=${ANDROID_BIN}/${HOST_NDK_TOOLCHAINS}-
 
 CPPFLAGS="$CPPFLAGS" \
 CFLAGS="$CFLAGS" \
@@ -45,7 +60,7 @@ NM="${CROSS_COMPILE}nm" \
 STRIP="${CROSS_COMPILE}strip" \
 RANLIB="${CROSS_COMPILE}ranlib" \
 AR="${CROSS_COMPILE}ar" \
-sh $VLC_SOURCEDIR/configure --host=arm-linux-androideabi --build=x86_64-unknown-linux $EXTRA_PARAMS \
+sh $VLC_SOURCEDIR/configure --host=${HOST_NDK_TOOLCHAINS} --build=x86_64-unknown-linux $EXTRA_PARAMS \
                 --enable-live555 --enable-realrtsp \
                 --enable-avformat \
                 --enable-swscale \

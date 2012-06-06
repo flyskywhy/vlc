@@ -13,9 +13,10 @@ $(TARBALLS)/a52dec-$(A52DEC_VERSION).tar.gz:
 a52dec: a52dec-$(A52DEC_VERSION).tar.gz .sum-a52
 	$(UNPACK)
 	$(APPLY) $(SRC)/a52/liba52-pic.patch
-	$(APPLY) $(SRC)/a52/liba52-silence.patch
 ifndef HAVE_FPU
 	$(APPLY) $(SRC)/a52/liba52-fixed.diff
+else
+	$(APPLY) $(SRC)/a52/liba52-silence.patch
 endif
 	$(MOVE)
 

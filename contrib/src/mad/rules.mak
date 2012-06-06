@@ -22,6 +22,9 @@ ifdef HAVE_MACOSX
 		-i.orig configure
 endif
 	$(APPLY) $(SRC)/mad/mad-noopt.patch
+ifeq ($(ARCH),mips)
+	$(APPLY) $(SRC)/mad/libmad-mips.patch
+endif
 	$(MOVE)
 
 .mad: libmad
